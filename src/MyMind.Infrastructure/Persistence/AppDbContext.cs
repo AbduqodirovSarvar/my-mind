@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using MyMind.Application.Common;
 using MyMind.Domain.Articles;
 using MyMind.Domain.Categories;
+using MyMind.Domain.Media;
 using MyMind.Infrastructure.Identity;
 
 namespace MyMind.Infrastructure.Persistence;
@@ -20,6 +21,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<ArticleRevision> ArticleRevisions => Set<ArticleRevision>();
 
     public DbSet<ArticleRedirect> ArticleRedirects => Set<ArticleRedirect>();
+
+    public DbSet<MediaFile> Media => Set<MediaFile>();
+
+    public DbSet<ArticleMedia> ArticleMedia => Set<ArticleMedia>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -21,7 +21,7 @@ public sealed class ArticleHtmlSanitizer
             },
             AllowedAttributes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
-                "href", "rel", "id", "start", "class", "src", "alt", "width", "height", "loading", "decoding",
+                "href", "rel", "id", "start", "class", "src", "srcset", "sizes", "alt", "width", "height", "loading", "decoding",
                 "colspan", "rowspan", "data-provider", "data-video-id", "data-language",
             },
             AllowedSchemes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "http", "https", "mailto" },

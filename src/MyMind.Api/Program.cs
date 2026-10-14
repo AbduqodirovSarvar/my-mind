@@ -1,12 +1,16 @@
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using MyMind.Api.Features.Articles;
 using MyMind.Api.Features.Auth;
 using MyMind.Api.Features.Categories;
+using MyMind.Api.Features.Media;
 using MyMind.Api.Features.Public;
 using MyMind.Api.Http;
 using MyMind.Application;
 using MyMind.Application.Common;
 using MyMind.Infrastructure;
+using MyMind.Infrastructure.Storage;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Formatting.Compact;
@@ -60,6 +64,15 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
+
+    // In Docker, Caddy serves /uploads straight from the volume; locally the API does it.
+    var storage = app.Services.GetRequiredService<IOptions<StorageOptions>>().Value;
+    Directory.CreateDirectory(storage.Root);
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(Path.GetFullPath(storage.Root)),
+        RequestPath = storage.PublicBasePath,
+    });
 }
 
 if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
@@ -76,6 +89,7 @@ api.MapPublicEndpoints();
 var me = api.MapGroup("/me").RequireAuthorization();
 me.MapCategoryEndpoints();
 me.MapArticleEndpoints();
+me.MapMediaEndpoints();
 
 app.Run();
 

@@ -48,6 +48,15 @@ dotnet ef migrations add <Name> -p src/MyMind.Infrastructure -s src/MyMind.Api -
 - Maqola: qoralama (`Draft*`) va e'lon qilingan nusxa alohida; publish draftni renderer orqali nusxalaydi. `Version` = `xmin`, javoblarda ETag sifatida.
 - `TipTapRenderer` faqat ma'lum node turlarini qabul qiladi (noma'lum → 400), hamma narsani encode qiladi, keyin `ArticleHtmlSanitizer` dan o'tkazadi. Yangi node turi qo'shilsa: renderer + sanitizer allow-list + `XssTests` payload'lari.
 - Slug: `Domain/Common/Slug` (transliteratsiya, `MakeUnique`). Kategoriya slug'i URL'da bezak; maqola `(username, slug)` bo'yicha topiladi.
+- ETag: `ETags.ParseIfMatch` proxy o'zgartirgan teglarni ham qabul qiladi (`"835-zstd"`, `W/"835"`).
+
+## Media (3-bosqich)
+
+- `POST /api/me/media` → `MediaService`: magic bytes (`ImageFormats`), 5 MB, kvota, so'ng `IImageProcessor` (`NetVipsImageProcessor`: header bo'yicha 40 MP tekshiruvi, `ThumbnailBuffer` EXIF orientation bilan, WebP q80, metadata'siz) va `IFileStorage` (`LocalFileStorage`, `Storage:Root`).
+- Kalitlar: `{userId:N}/{yyyy}/{id:N}.webp` va `…-640.webp`; URL bazada saqlanmaydi (`IFileStorage.PublicUrl`). Renderer `srcset` ni shu nomlashga tayanib quradi.
+- Draft saqlanganda undagi o'z rasmlari `article_media` ga bog'lanadi (faqat qo'shiladi). `ContentCleanupWorker` soatda bir: 24 soatdan beri bog'lanmagan media va 30 kundan oshgan soft-delete maqolalar o'chiriladi. Testlarda `Cleanup:Enabled=false`.
+- Dev'da `/uploads` ni API o'zi beradi (Development'dagi `UseStaticFiles`); compose'da Caddy volume'dan beradi.
+- NetVips native: `NetVips.Native.win-x64` (dev) va `linux-x64` (Docker). Boshqa platforma kerak bo'lsa paket qo'shiladi.
 
 ## Qoidalar
 

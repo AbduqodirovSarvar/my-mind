@@ -14,6 +14,7 @@ namespace MyMind.IntegrationTests.Infrastructure;
 public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
     private readonly PostgreSqlContainer _database = new PostgreSqlBuilder("postgres:17").Build();
+    private readonly string _storageRoot = Directory.CreateTempSubdirectory("mymind-uploads-").FullName;
 
     public async ValueTask InitializeAsync()
     {
@@ -28,6 +29,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     {
         await base.DisposeAsync();
         await _database.DisposeAsync();
+        Directory.Delete(_storageRoot, recursive: true);
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -37,7 +39,13 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Database:MigrateOnStartup", "true");
         builder.UseSetting("RateLimits:Login:PermitLimit", "1000");
         builder.UseSetting("RateLimits:Register:PermitLimit", "1000");
+        builder.UseSetting("RateLimits:Upload:PermitLimit", "1000");
+        builder.UseSetting("Storage:Root", _storageRoot);
+        builder.UseSetting("Cleanup:Enabled", "false");
     }
+
+    /// <summary>Where an uploaded file with the given public URL is on disk.</summary>
+    public string StoragePath(string publicUrl) => Path.Combine(_storageRoot, publicUrl["/uploads/".Length..]);
 
     /// <summary>
     /// A browser-like client: keeps cookies and, like Angular's HttpClient, echoes the

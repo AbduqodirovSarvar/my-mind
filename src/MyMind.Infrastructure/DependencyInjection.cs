@@ -8,7 +8,9 @@ using MyMind.Application.Features.Auth;
 using MyMind.Domain.Users;
 using MyMind.Infrastructure.Content;
 using MyMind.Infrastructure.Identity;
+using MyMind.Infrastructure.Media;
 using MyMind.Infrastructure.Persistence;
+using MyMind.Infrastructure.Storage;
 
 namespace MyMind.Infrastructure;
 
@@ -24,6 +26,11 @@ public static class DependencyInjection
 
         services.AddSingleton<ArticleHtmlSanitizer>();
         services.AddSingleton<IArticleRenderer, TipTapRenderer>();
+
+        services.Configure<StorageOptions>(configuration.GetSection(StorageOptions.Section));
+        services.AddSingleton<IFileStorage, LocalFileStorage>();
+        services.AddSingleton<IImageProcessor, NetVipsImageProcessor>();
+        services.AddHostedService<ContentCleanupWorker>();
 
         services.AddIdentity<AppUser, AppRole>(options =>
             {

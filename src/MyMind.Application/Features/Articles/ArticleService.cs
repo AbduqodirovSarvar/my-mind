@@ -5,6 +5,7 @@ using MyMind.Application.Common;
 using MyMind.Domain;
 using MyMind.Domain.Articles;
 using MyMind.Domain.Common;
+using MyMind.Domain.Media;
 
 namespace MyMind.Application.Features.Articles;
 
@@ -14,6 +15,7 @@ public sealed class ArticleService(
     ICurrentUser currentUser,
     IArticleRenderer renderer,
     IUserDirectory users,
+    IFileStorage storage,
     IOptions<PublishingOptions> publishing,
     TimeProvider clock)
 {
@@ -92,6 +94,7 @@ public sealed class ArticleService(
         var now = clock.GetUtcNow();
         article.SaveDraft(request.Title, request.Content.GetRawText(), now);
         await SnapshotAutosaveIfDueAsync(article, now, ct);
+        await LinkImagesAsync(article, now, ct);
 
         return await SaveAsync(article, ct);
     }
@@ -241,7 +244,9 @@ public sealed class ArticleService(
             return Error.NotFound("Versiya topilmadi.");
         }
 
-        article.SaveDraft(revision.Title, revision.ContentJson, clock.GetUtcNow());
+        var now = clock.GetUtcNow();
+        article.SaveDraft(revision.Title, revision.ContentJson, now);
+        await LinkImagesAsync(article, now, ct);
         return await SaveAsync(article, ct);
     }
 
@@ -291,6 +296,29 @@ public sealed class ArticleService(
         {
             await db.ArticleRevisions.Where(r => expired.Contains(r.Id)).ExecuteDeleteAsync(ct);
         }
+    }
+
+    /// <summary>Marks the author's own uploads used in the draft as in use, so cleanup keeps them.</summary>
+    private async Task LinkImagesAsync(Article article, DateTimeOffset now, CancellationToken ct)
+    {
+        var keys = TipTapDocument.ImageSources(article.DraftJson)
+            .Select(storage.KeyFromPublicUrl)
+            .OfType<string>()
+            .Distinct()
+            .ToList();
+        if (keys.Count == 0)
+        {
+            return;
+        }
+
+        var userId = currentUser.Id;
+        var unlinked = await db.Media
+            .Where(m => m.UserId == userId && keys.Contains(m.StorageKey))
+            .Where(m => !db.ArticleMedia.Any(l => l.ArticleId == article.Id && l.MediaId == m.Id))
+            .Select(m => m.Id)
+            .ToListAsync(ct);
+
+        db.ArticleMedia.AddRange(unlinked.Select(mediaId => ArticleMedia.Link(article.Id, mediaId, now)));
     }
 
     private async Task<Result<ArticleDetailResponse>> SaveAsync(Article article, CancellationToken ct)

@@ -73,7 +73,18 @@ public class TipTapRendererTests
     {
         var html = _renderer.Render(Doc(new { type = "image", attrs = new { src = "/uploads/u1/2026/a.webp", alt = "Sxema", width = 800, height = 600 } })).Value.Html;
 
-        Assert.Equal("<img src=\"/uploads/u1/2026/a.webp\" alt=\"Sxema\" width=\"800\" height=\"600\" loading=\"lazy\" decoding=\"async\">", html);
+        Assert.Equal(
+            "<img src=\"/uploads/u1/2026/a.webp\" srcset=\"/uploads/u1/2026/a-640.webp 640w, /uploads/u1/2026/a.webp 800w\""
+            + " sizes=\"(max-width: 768px) 100vw, 768px\" alt=\"Sxema\" width=\"800\" height=\"600\" loading=\"lazy\" decoding=\"async\">",
+            html);
+    }
+
+    [Fact]
+    public void Render_SkipsSrcset_ForSmallImages()
+    {
+        var html = _renderer.Render(Doc(new { type = "image", attrs = new { src = "/uploads/u1/2026/b.webp", width = 400, height = 300 } })).Value.Html;
+
+        Assert.DoesNotContain("srcset", html);
     }
 
     [Fact]

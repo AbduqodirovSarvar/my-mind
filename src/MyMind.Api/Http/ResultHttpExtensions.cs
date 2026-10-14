@@ -36,12 +36,33 @@ internal static class ETags
 {
     public static string Format(uint version) => $"\"{version.ToString(CultureInfo.InvariantCulture)}\"";
 
-    public static uint? ParseIfMatch(HttpRequest request)
+    /// <summary>
+    /// Reads the version from If-Match. Compressing proxies rewrite ETags they pass through —
+    /// Caddy appends the encoding (<c>"835-zstd"</c>), nginx weakens them (<c>W/"835"</c>) — and
+    /// clients echo what they received, so both forms are accepted.
+    /// </summary>
+    public static uint? ParseIfMatch(HttpRequest request) => ParseIfMatch(request.Headers[HeaderNames.IfMatch].ToString());
+
+    public static uint? ParseIfMatch(string header)
     {
-        var header = request.Headers[HeaderNames.IfMatch].ToString().Trim();
-        return header.Length > 2 && header[0] == '"' && header[^1] == '"'
-            && uint.TryParse(header[1..^1], NumberStyles.None, CultureInfo.InvariantCulture, out var version)
-                ? version
-                : null;
+        var value = header.Trim();
+        if (value.StartsWith("W/", StringComparison.Ordinal))
+        {
+            value = value[2..];
+        }
+
+        if (value.Length < 3 || value[0] != '"' || value[^1] != '"')
+        {
+            return null;
+        }
+
+        var tag = value[1..^1];
+        var dash = tag.IndexOf('-');
+        if (dash > 0)
+        {
+            tag = tag[..dash];
+        }
+
+        return uint.TryParse(tag, NumberStyles.None, CultureInfo.InvariantCulture, out var version) ? version : null;
     }
 }

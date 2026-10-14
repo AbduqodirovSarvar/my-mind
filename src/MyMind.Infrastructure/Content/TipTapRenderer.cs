@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using MyMind.Application.Common;
 using MyMind.Domain.Articles;
 using MyMind.Domain.Common;
+using MyMind.Domain.Media;
 
 namespace MyMind.Infrastructure.Content;
 
@@ -244,7 +245,12 @@ public sealed partial class TipTapRenderer(ArticleHtmlSanitizer sanitizer) : IAr
         var height = IntAttr(node, "height", 0, 1, 10_000);
         var size = width > 0 && height > 0 ? $" width=\"{width}\" height=\"{height}\"" : "";
 
-        context.Html.Append($"<img src=\"{src}\" alt=\"{alt}\"{size} loading=\"lazy\" decoding=\"async\">");
+        // Uploads wider than the small variant have one next to them (MediaFile.KeysFor): phones load that.
+        var srcset = width > MediaFile.SmallWidth && src.EndsWith(".webp", StringComparison.Ordinal)
+            ? $" srcset=\"{src[..^5]}-{MediaFile.SmallWidth}.webp {MediaFile.SmallWidth}w, {src} {width}w\" sizes=\"(max-width: 768px) 100vw, 768px\""
+            : "";
+
+        context.Html.Append($"<img src=\"{src}\"{srcset} alt=\"{alt}\"{size} loading=\"lazy\" decoding=\"async\">");
     }
 
     /// <summary>

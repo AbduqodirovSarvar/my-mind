@@ -38,7 +38,7 @@ public class AuthTests(ApiFactory factory)
 
         Assert.Equal(HttpStatusCode.NoContent, logout.StatusCode);
         var me = await client.GetAsync("/api/auth/me", Ct);
-        Assert.Equal(HttpStatusCode.Unauthorized, me.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, me.StatusCode);
     }
 
     [Theory]

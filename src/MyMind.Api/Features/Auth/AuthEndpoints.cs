@@ -113,7 +113,8 @@ internal static class AuthEndpoints
         return TypedResults.NoContent();
     }
 
-    private static async Task<Results<Ok<CurrentUserResponse>, UnauthorizedHttpResult>> Me(
+    /// <summary>The signed-in user, or 204 for anonymous visitors (not an error, so no 401 noise in the browser).</summary>
+    private static async Task<Results<Ok<CurrentUserResponse>, NoContent>> Me(
         UserManager<AppUser> users,
         HttpContext http)
     {
@@ -122,7 +123,7 @@ internal static class AuthEndpoints
         var user = http.User.Identity?.IsAuthenticated == true ? await users.GetUserAsync(http.User) : null;
 
         return user is null
-            ? TypedResults.Unauthorized()
+            ? TypedResults.NoContent()
             : TypedResults.Ok(ToResponse(user));
     }
 

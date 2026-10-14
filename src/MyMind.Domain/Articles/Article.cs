@@ -20,6 +20,9 @@ public sealed class Article
     public const int ExcerptMaxLength = 300;
     public const string EmptyDocument = """{"type":"doc","content":[]}""";
 
+    /// <summary>Plan §5.1: soft-deleted articles are removed for good after this long.</summary>
+    public static readonly TimeSpan PurgeAfter = TimeSpan.FromDays(30);
+
     private Article()
     {
     }
