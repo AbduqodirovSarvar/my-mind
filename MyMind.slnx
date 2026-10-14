@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MyMind.Api/MyMind.Api.csproj" />
+    <Project Path="src/MyMind.Application/MyMind.Application.csproj" />
+    <Project Path="src/MyMind.Domain/MyMind.Domain.csproj" />
+    <Project Path="src/MyMind.Infrastructure/MyMind.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MyMind.IntegrationTests/MyMind.IntegrationTests.csproj" />
+    <Project Path="tests/MyMind.UnitTests/MyMind.UnitTests.csproj" />
+  </Folder>
+</Solution>

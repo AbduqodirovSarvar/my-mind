@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\MyMind.Infrastructure\MyMind.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
