@@ -18,6 +18,10 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     public async ValueTask InitializeAsync()
     {
         await _database.StartAsync(TestContext.Current.CancellationToken);
+
+        // Start the server (and migrate) once, here; test classes run in parallel and would
+        // otherwise race to build the host and apply migrations concurrently.
+        using var _ = CreateClient();
     }
 
     public override async ValueTask DisposeAsync()

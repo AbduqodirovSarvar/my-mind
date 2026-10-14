@@ -41,6 +41,14 @@ dotnet ef migrations add <Name> -p src/MyMind.Infrastructure -s src/MyMind.Api -
 - Integratsiya testlari: `ApiFactory.CreateBrowserClient()` — cookie va XSRF header'ni brauzer kabi boshqaradi; baza Testcontainers'da.
 - EF migratsiyalari `generated_code` (.editorconfig), shuning uchun stil qoidalari ularga qo'llanmaydi.
 
+## Kontent (2-bosqich)
+
+- Use-case'lar Application'dagi servislarda (`CategoryService`, `ArticleService`, `PublicReadService`); ular `IAppDbContext`, `ICurrentUser`, `IArticleRenderer`, `IUserDirectory` orqali ishlaydi va `Result<T>` qaytaradi. Api `ToHttp(...)` bilan HTTP'ga aylantiradi (`ErrorKind` → 400/404/409/412/428/403).
+- Egalik: har bir so'rov `UserId == currentUser.Id` bilan; begona ID (shu jumladan begona `parentId`/`categoryId`) → 404. Yangi `/api/me` endpoint'i `OwnershipTests` ro'yxatiga qo'shiladi.
+- Maqola: qoralama (`Draft*`) va e'lon qilingan nusxa alohida; publish draftni renderer orqali nusxalaydi. `Version` = `xmin`, javoblarda ETag sifatida.
+- `TipTapRenderer` faqat ma'lum node turlarini qabul qiladi (noma'lum → 400), hamma narsani encode qiladi, keyin `ArticleHtmlSanitizer` dan o'tkazadi. Yangi node turi qo'shilsa: renderer + sanitizer allow-list + `XssTests` payload'lari.
+- Slug: `Domain/Common/Slug` (transliteratsiya, `MakeUnique`). Kategoriya slug'i URL'da bezak; maqola `(username, slug)` bo'yicha topiladi.
+
 ## Qoidalar
 
 - ID: `Guid.CreateVersion7()`; vaqt: `timestamptz`, faqat UTC; DB nomlari `snake_case`.

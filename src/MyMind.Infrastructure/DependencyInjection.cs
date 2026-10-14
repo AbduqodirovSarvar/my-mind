@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MyMind.Application.Common;
 using MyMind.Application.Features.Auth;
 using MyMind.Domain.Users;
+using MyMind.Infrastructure.Content;
 using MyMind.Infrastructure.Identity;
 using MyMind.Infrastructure.Persistence;
 
@@ -17,6 +19,11 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(options => options
             .UseNpgsql(configuration.GetConnectionString("Default"))
             .UseSnakeCaseNamingConvention());
+        services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
+        services.AddScoped<IUserDirectory, UserDirectory>();
+
+        services.AddSingleton<ArticleHtmlSanitizer>();
+        services.AddSingleton<IArticleRenderer, TipTapRenderer>();
 
         services.AddIdentity<AppUser, AppRole>(options =>
             {

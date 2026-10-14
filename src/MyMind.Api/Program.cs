@@ -1,6 +1,11 @@
+using System.Text.Json.Serialization;
+using MyMind.Api.Features.Articles;
 using MyMind.Api.Features.Auth;
+using MyMind.Api.Features.Categories;
+using MyMind.Api.Features.Public;
 using MyMind.Api.Http;
 using MyMind.Application;
+using MyMind.Application.Common;
 using MyMind.Infrastructure;
 using Scalar.AspNetCore;
 using Serilog;
@@ -26,6 +31,10 @@ builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddHealthChecks();
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.ConfigureHttpJsonOptions(options => options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
+builder.Services.Configure<PublishingOptions>(builder.Configuration.GetSection(PublishingOptions.Section));
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
@@ -62,6 +71,11 @@ app.MapHealthChecks("/health");
 
 var api = app.MapGroup("/api").AddEndpointFilter<AntiforgeryValidationFilter>();
 api.MapAuthEndpoints();
+api.MapPublicEndpoints();
+
+var me = api.MapGroup("/me").RequireAuthorization();
+me.MapCategoryEndpoints();
+me.MapArticleEndpoints();
 
 app.Run();
 
