@@ -27,8 +27,19 @@ Bog'lanishlar: Api → Application + Infrastructure, Infrastructure → Applicat
 dotnet build MyMind.slnx
 dotnet test --solution MyMind.slnx
 dotnet format MyMind.slnx --verify-no-changes
+docker compose -f compose.dev.yml up -d    # dev PostgreSQL on localhost:5433
 dotnet run --project src/MyMind.Api        # http://localhost:5071, /scalar, /health
+dotnet ef migrations add <Name> -p src/MyMind.Infrastructure -s src/MyMind.Api -o Persistence/Migrations
 ```
+
+## Auth (1-bosqich)
+
+- Identity + cookie `__Host-mymind`; `AppUser`/`AppRole` va `AppDbContext` Infrastructure'da; endpoint'lar `src/MyMind.Api/Features/Auth`.
+- `/api` guruhidagi har bir POST/PUT/PATCH/DELETE `AntiforgeryValidationFilter` dan o'tadi; `XSRF-TOKEN` cookie `GET /api/auth/me` da va login/register/logout'da (yangi foydalanuvchi bilan) beriladi.
+- Validatsiya: `.WithValidation<TRequest>()` (FluentValidation, Application'dagi validator).
+- Rate limit: `.RequireRateLimiting(RateLimitPolicies.X)`, limitlar `RateLimits` sozlamasida.
+- Integratsiya testlari: `ApiFactory.CreateBrowserClient()` — cookie va XSRF header'ni brauzer kabi boshqaradi; baza Testcontainers'da.
+- EF migratsiyalari `generated_code` (.editorconfig), shuning uchun stil qoidalari ularga qo'llanmaydi.
 
 ## Qoidalar
 

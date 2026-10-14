@@ -11,6 +11,13 @@ permissions:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: mymind-api
+            target: runtime
+          - name: mymind-migrator
+            target: migrator
     steps:
       - uses: actions/checkout@v5
       # Image names must be lowercase; the GitHub owner name may not be.
@@ -24,7 +31,8 @@ jobs:
         with:
           context: .
           file: src/MyMind.Api/Dockerfile
+          target: ${{ matrix.target }}
           push: true
           tags: |
-            ghcr.io/${{ env.OWNER }}/mymind-api:${{ github.sha }}
-            ghcr.io/${{ env.OWNER }}/mymind-api:latest
+            ghcr.io/${{ env.OWNER }}/${{ matrix.name }}:${{ github.sha }}
+            ghcr.io/${{ env.OWNER }}/${{ matrix.name }}:latest

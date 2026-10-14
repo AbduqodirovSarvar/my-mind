@@ -1,12 +1,12 @@
 using System.Net;
-using Microsoft.AspNetCore.Mvc.Testing;
+using MyMind.IntegrationTests.Infrastructure;
 
 namespace MyMind.IntegrationTests;
 
-public class HealthTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+public class HealthTests(ApiFactory factory)
 {
     [Fact]
-    public async Task Health_ReturnsOk()
+    public async Task Health_ReturnsOk_WhenDatabaseIsReachable()
     {
         var client = factory.CreateClient();
 

@@ -1,0 +1,18 @@
+# Local PostgreSQL for `dotnet run` (matches appsettings.Development.json).
+#   docker compose -f compose.dev.yml up -d
+name: mymind-dev
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: mymind
+      POSTGRES_USER: mymind
+      POSTGRES_PASSWORD: mymind-dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

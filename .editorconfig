@@ -30,3 +30,7 @@ dotnet_naming_style.underscore_camel.capitalization = camel_case
 
 [*.{csproj,props,targets,slnx}]
 indent_size = 2
+
+# EF Core migrations are generated code; style rules do not apply.
+[**/Migrations/*.cs]
+generated_code = true
